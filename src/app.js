@@ -1,6 +1,9 @@
-const Sequelize = require('sequelize');
-const sequelize = new Sequelize('database', 'username', 'password', {
-  host: 'localhost',
+'use strict'
+
+global.pangolier = {}
+
+const Sequelize = require('sequelize')
+const sequelize = new Sequelize('database', null, null, {
   dialect: 'sqlite',
   pool: {
     max: 5,
@@ -10,7 +13,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
   },
 
   // SQLite only
-  storage: 'path/to/database.sqlite'
+  storage: './db/database.sqlite'
 })
 
 sequelize
