@@ -1,0 +1,23 @@
+{
+  "name": "entry_task_server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lithium2013/entry_task_server.git"
+  },
+  "author": "jinyang,li",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lithium2013/entry_task_server/issues"
+  },
+  "homepage": "https://github.com/lithium2013/entry_task_server#readme",
+  "dependencies": {
+    "sequelize": "^4.33.3",
+    "sqlite3": "^3.1.13"
+  }
+}
