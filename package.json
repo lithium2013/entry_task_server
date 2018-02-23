@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/lithium2013/entry_task_server#readme",
   "dependencies": {
+    "fastify": "^1.0.0-rc.2",
+    "fastify-cli": "^0.12.0",
+    "fastify-plugin": "^0.2.2",
     "sequelize": "^4.33.3",
     "sqlite3": "^3.1.13"
   },

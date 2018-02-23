@@ -1,26 +1,15 @@
 'use strict'
 
-global.pangolier = {}
+const fastify = require('fastify')()
 
-const Sequelize = require('sequelize')
-const sequelize = new Sequelize('database', null, null, {
-  dialect: 'sqlite',
-  pool: {
-    max: 5,
-    min: 0,
-    acquire: 30000,
-    idle: 10000
-  },
+fastify.register(require('./models/index'))
 
-  // SQLite only
-  storage: './db/database.sqlite'
+fastify.register(require('./router/index'))
+
+fastify.listen(3000, function (err) {
+  if (err) {
+    console.log(err)
+    fastify.log.error(err)
+    process.exit(1)
+  }
 })
-
-sequelize
-  .authenticate()
-  .then(() => {
-    console.log('Connection has been established successfully.')
-  })
-  .catch(err => {
-    console.error('Unable to connect to the database:', err)
-  })
