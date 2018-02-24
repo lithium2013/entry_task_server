@@ -52,7 +52,6 @@ const userController = models => {
         .send({ error: 'error_username' })
     }
 
-    console.log(encrypte(password, user.dataValues.salt))
     if (
       user.dataValues.password ===
       encrypte(password, user.dataValues.salt)

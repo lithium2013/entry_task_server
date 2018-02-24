@@ -31,8 +31,6 @@ const dbConnector = async fastify => {
     categoryModel: (require('./category.js'))(sequelize)
   }
 
-  // fastify.decorate('sequelize', sequelize)
-  // fastify.decorate('Sequelize', Sequelize)
   fastify.decorate('models', models)
 }
 
