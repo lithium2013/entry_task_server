@@ -5,11 +5,9 @@ const Op = Sequelize.Op
 
 const eventController = models => {
   const {
-    categoryModel,
     eventModel,
     eventLikeModel,
-    participationModel,
-    userModel
+    participationModel
   } = models
 
   const getEventsByIds = async (request, reply) => {
