@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize')
 
-const userModel = function (sequelize) {
+const userModel = sequelize => {
   const User = sequelize.define('user', {
     id: { type: Sequelize.BIGINT(20).UNSIGNED, primaryKey: true, allowNull: false, autoIncrement: true },
     username: { type: Sequelize.STRING(32), allowNull: false },
@@ -19,8 +19,8 @@ const userModel = function (sequelize) {
     return User.create({
       username: 'Jinyang.Li',
       name: 'jinyangli',
-      password: '123456',
-      salt: 'asdfgg',
+      password: 'df10ef8509dc176d733d59549e7dbfaf', // 123456
+      salt: 'abc',
       email: 'test@gmail.com',
       ctime: Date.now()
     })

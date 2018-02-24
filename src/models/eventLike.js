@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize')
 
-const eventLikeModel = function (sequelize) {
+const eventLikeModel = sequelize => {
   const EventLike = sequelize.define('event_like', {
     id: { type: Sequelize.BIGINT(20).UNSIGNED, primaryKey: true, allowNull: false, autoIncrement: true },
     user_id: { type: Sequelize.BIGINT(20).UNSIGNED, allowNull: false },

@@ -1,6 +1,6 @@
 const fastifyPlugin = require('fastify-plugin')
 
-async function dbConnector (fastify) {
+const dbConnector = async fastify => {
   const Sequelize = require('sequelize')
   const sequelize = new Sequelize('database', null, null, {
     dialect: 'sqlite',
@@ -24,11 +24,11 @@ async function dbConnector (fastify) {
     })
 
   const models = {
-    user: (require('./user.js'))(sequelize),
-    event: (require('./event.js'))(sequelize),
-    participation: (require('./participation.js'))(sequelize),
-    eventLike: (require('./eventLike.js'))(sequelize),
-    category: (require('./category.js'))(sequelize)
+    userModel: (require('./user.js'))(sequelize),
+    eventModel: (require('./event.js'))(sequelize),
+    participationModel: (require('./participation.js'))(sequelize),
+    eventLikeModel: (require('./eventLike.js'))(sequelize),
+    categoryModel: (require('./category.js'))(sequelize)
   }
 
   // fastify.decorate('sequelize', sequelize)

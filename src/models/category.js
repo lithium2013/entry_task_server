@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize')
 
-const categoryModel = function (sequelize) {
+const categoryModel = sequelize => {
   const Category = sequelize.define('category', {
     id: { type: Sequelize.INTEGER(10).UNSIGNED, primaryKey: true, allowNull: false, autoIncrement: true },
     name: { type: Sequelize.STRING(32), allowNull: false },

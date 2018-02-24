@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize')
 
-const eventModel = function (sequelize) {
+const eventModel = sequelize => {
   const Event = sequelize.define('event', {
     id: { type: Sequelize.BIGINT(20).UNSIGNED, primaryKey: true, allowNull: false, autoIncrement: true },
     title: { type: Sequelize.STRING(128), allowNull: false },

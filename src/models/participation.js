@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize')
 
-const participationModel = function (sequelize) {
+const participationModel = sequelize => {
   const Participation = sequelize.define('participation', {
     id: { type: Sequelize.BIGINT(20).UNSIGNED, primaryKey: true, allowNull: false, autoIncrement: true },
     user_id: { type: Sequelize.BIGINT(20).UNSIGNED, allowNull: false },
