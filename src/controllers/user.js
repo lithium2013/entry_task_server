@@ -3,89 +3,93 @@
 const md5 = require('md5')
 
 const encrypte = (password, salt) => md5(`${password}${salt}`).slice(0, 32)
-const genSalt = () =>
+const makeSalt = () =>
   Math.ceil(Math.random() * Math.pow(10, 16)).toString() +
   Math.ceil(Math.random() * Math.pow(10, 16)).toString()
 
 const userController = models => {
   const { userModel } = models
+  const { send400, send403, send404 } = _pangolier.utils
 
   const register = async (request, reply) => {
-    const { username, name, password, email } = request.body
+    const { username, password, email } = request.body || {}
+
+    if (!username || !password || !email) {
+      return send400(reply, 'error_missing_param')
+    }
+
     const exist = await userModel.findOne({
       where: { username }
     })
 
     if (exist !== null) {
-      return reply
-        .code(403)
-        .send({ error: 'error_username_exist' })
+      return send403(reply, 'error_username_exist')
     }
 
-    const salt = genSalt()
+    const salt = makeSalt()
 
     const user = await userModel.create({
       username,
-      name,
       salt,
       password: encrypte(password, salt),
-      email,
-      ctime: Date.now()
+      email
     })
 
     reply
-      .header('Set-Cookie', [`user_id=${user.dataValues.id}`])
       .send({
+        token: _pangolier.token.makeToken(user.dataValues.id),
         user_id: user.dataValues.id
       })
   }
 
-  const login = async (request, reply) => {
-    const { username, password } = request.body
+  const auth = async (request, reply) => {
+    const { username, password } = request.body || {}
+
+    if (!username || !password) {
+      return send400(reply, 'error_missing_param')
+    }
+
     const user = await userModel.findOne({
       where: { username }
     })
 
     if (user === null) {
-      return reply
-        .code(403)
-        .send({ error: 'error_username' })
+      return send404(reply, 'error_user_not_found')
     }
 
     if (
       user.dataValues.password ===
       encrypte(password, user.dataValues.salt)
     ) {
+      const token = _pangolier.token.makeToken(user.dataValues.id)
+      const { id, username, email } = user.dataValues
+
       return reply
-        .header('Set-Cookie', [`user_id=${user.dataValues.id}`])
         .send({
-          user_id: user.dataValues.id
+          token,
+          user: { id, username, email }
         })
     }
-
-    reply
-      .code(403)
-      .send({ error: 'error_password' })
+    send403(reply, 'error_password')
   }
 
-  const getUsers = async (request, reply) => {
-    const uids = request.body.user_ids
-    const users = await userModel.findAll({
-      where: { id: uids }
-    })
+  const unauth = async (request, reply) => {
+    const { isAuthed, token } = request.req.userStatus
 
-    reply.send({
-      users: users.map(item => {
-        const { id, username, name, email, ctime } = item.dataValues
-        return { id, username, name, email, ctime }
-      })
-    })
+    if (isAuthed) {
+      _pangolier.token.deleteToken(token)
+      request.req.userStatus = { isAuthed: false }
+
+      return reply.send()
+    }
+
+    return send403(reply, 'Invalid token')
   }
 
   return {
     register,
-    login,
-    getUsers
+    auth,
+    unauth
   }
 }
 

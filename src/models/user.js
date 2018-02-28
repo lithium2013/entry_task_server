@@ -3,14 +3,12 @@ const Sequelize = require('sequelize')
 const userModel = sequelize => {
   const User = sequelize.define('user', {
     id: { type: Sequelize.BIGINT(20).UNSIGNED, primaryKey: true, allowNull: false, autoIncrement: true },
-    username: { type: Sequelize.STRING(32), allowNull: false },
+    username: { type: Sequelize.STRING(32), allowNull: false, unique: true },
     password: { type: Sequelize.STRING(32), allowNull: false },
-    salt: { type: Sequelize.STRING(32), allowNull: false },
-    name: { type: Sequelize.STRING(64), allowNull: false },
-    email: { type: Sequelize.STRING(64), allowNull: false },
-    ctime: { type: Sequelize.DATE, allowNull: false }
+    email: { type: Sequelize.STRING(64), allowNull: false, unique: true },
+    salt: { type: Sequelize.STRING(32), allowNull: false }
   }, {
-    indexes: [{ name: 'idx_username', unique: true, fields: ['username'] }]
+    indexes: [{ fields: ['username'] }]
   })
 
   // force: true will drop the table if it already exists
@@ -18,11 +16,9 @@ const userModel = sequelize => {
     // Table created
     return User.create({
       username: 'Jinyang.Li',
-      name: 'jinyangli',
       password: 'df10ef8509dc176d733d59549e7dbfaf', // 123456
       salt: 'abc',
-      email: 'test@gmail.com',
-      ctime: Date.now()
+      email: 'test@gmail.com'
     })
   })
 

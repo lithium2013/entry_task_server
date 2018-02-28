@@ -27,8 +27,10 @@ const dbConnector = async fastify => {
     userModel: (require('./user.js'))(sequelize),
     eventModel: (require('./event.js'))(sequelize),
     participationModel: (require('./participation.js'))(sequelize),
-    eventLikeModel: (require('./eventLike.js'))(sequelize),
-    categoryModel: (require('./category.js'))(sequelize)
+    commentModel: (require('./comment.js'))(sequelize),
+    imageModel: (require('./image.js'))(sequelize),
+    likeModel: (require('./like.js'))(sequelize),
+    channelModel: (require('./channel.js'))(sequelize)
   }
 
   fastify.decorate('models', models)

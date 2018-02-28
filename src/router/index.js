@@ -3,11 +3,19 @@
 const routes = async fastify => {
   const { models } = fastify
   const controllers = (require('../controllers/index.js'))(models)
-  const { userController, eventController } = controllers
+  const {
+    userController,
+    eventController,
+    channelController
+  } = controllers
 
-  fastify.post('/register', userController.register)
-  fastify.post('/login', userController.login)
-  fastify.post('/users', userController.getUsers)
+  // User auth
+  fastify.post('/join', userController.register)
+  fastify.post('/auth/token', userController.auth)
+  fastify.delete('/auth/token', userController.unauth)
+
+  // Channel
+  fastify.get('/channels', channelController.getChannels)
 
   fastify.post('/events', eventController.getEventsByIds)
   fastify.get('/query/events', eventController.getEventsByQuery)

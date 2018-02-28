@@ -1,10 +1,11 @@
 const Sequelize = require('sequelize')
 
-const participationModel = sequelize => {
-  const Participation = sequelize.define('participation', {
+const likeModel = sequelize => {
+  const Like = sequelize.define('like', {
     id: { type: Sequelize.BIGINT(20).UNSIGNED, primaryKey: true, allowNull: false, autoIncrement: true },
     user_id: { type: Sequelize.BIGINT(20).UNSIGNED, allowNull: false, unique: 'compositeIndex' },
-    event_id: { type: Sequelize.BIGINT(20).UNSIGNED, allowNull: false, unique: 'compositeIndex' }
+    event_id: { type: Sequelize.BIGINT(20).UNSIGNED, allowNull: false, unique: 'compositeIndex' },
+    like_time: { type: Sequelize.DATE, allowNull: false }
   }, {
     indexes: [
       { fields: ['event_id'] },
@@ -13,14 +14,15 @@ const participationModel = sequelize => {
     ]
   })
 
-  Participation.sync({ force: true }).then(() => {
-    return Participation.create({
+  Like.sync({ force: true }).then(() => {
+    return Like.create({
       user_id: 1,
-      event_id: 1
+      event_id: 1,
+      like_time: Date.now()
     })
   })
 
-  return Participation
+  return Like
 }
 
-module.exports = participationModel
+module.exports = likeModel
