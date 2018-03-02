@@ -1,30 +1,32 @@
 'use strict'
 
 const routes = async fastify => {
-  const { models } = fastify
+  const { models } = _pangolier
   const controllers = (require('../controllers/index.js'))(models)
   const {
-    userController,
+    authController,
     eventController,
     channelController
   } = controllers
 
   // User auth
-  fastify.post('/join', userController.register)
-  fastify.post('/auth/token', userController.auth)
-  fastify.delete('/auth/token', userController.unauth)
+  fastify.post('/join', authController.register)
+  fastify.post('/auth/token', authController.auth)
+  fastify.delete('/auth/token', authController.unauth)
 
   // Channel
   fastify.get('/channels', channelController.getChannels)
 
-  fastify.post('/events', eventController.getEventsByIds)
-  fastify.get('/query/events', eventController.getEventsByQuery)
+  // Event
+  fastify.get('/events', eventController.getEventsByQuery)
+  fastify.get('/events/:eventId', eventController.getEventById)
 
-  fastify.post('/events/:event_id/join', eventController.joinEvent)
-  fastify.delete('/events/:event_id/join', eventController.leaveEvent)
+  fastify.get('/events/:eventId/participants', eventController.getEventParticipants)
+  fastify.post('/events/:eventId/participants', eventController.participateEvent)
+  fastify.delete('/events/:eventId/participants', eventController.leaveEvent)
 
-  fastify.post('/events/:event_id/like', eventController.likeEvent)
-  fastify.delete('/events/:event_id/like', eventController.unlikeEvent)
+  fastify.post('/events/:eventId/like', eventController.likeEvent)
+  fastify.delete('/events/:eventId/like', eventController.unlikeEvent)
 }
 
 module.exports = routes

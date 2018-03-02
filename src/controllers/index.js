@@ -1,11 +1,9 @@
 'use strict'
 
-const controllers = models => {
+module.exports = models => {
   return {
-    userController: (require('./user.js'))(models),
-    channelController: (require('./channel.js'))(models),
-    eventController: (require('./event.js'))(models)
+    authController: (require('./auth.js')),
+    channelController: (require('./channel.js')),
+    eventController: (require('./event.js'))
   }
 }
-
-module.exports = controllers

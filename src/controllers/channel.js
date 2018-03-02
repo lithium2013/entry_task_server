@@ -1,24 +1,20 @@
 'use strict'
 
-const channelController = models => {
-  const { channelModel } = models
-  const { send403 } = _pangolier.utils
+const { Channel } = _pangolier.getModels()
+const { send403 } = _pangolier.utils
 
-  return {
-    getChannels: async (request, reply) => {
-      const { isAuthed } = request.req.userStatus
+module.exports = {
+  getChannels: async (request, reply) => {
+    const { isAuthed } = request.req.userStatus
 
-      if (isAuthed) {
-        const channels = await channelModel.findAll()
+    if (isAuthed) {
+      const channels = await Channel.findAll()
 
-        return reply.send({
-          channels: channels.map(item => item.dataValues)
-        })
-      }
-
-      return send403(reply, 'Invalid token')
+      return reply.send({
+        channels: channels.map(item => item.dataValues)
+      })
     }
+
+    return send403(reply, 'invalid_token')
   }
 }
-
-module.exports = channelController

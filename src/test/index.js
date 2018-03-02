@@ -9,9 +9,10 @@ const makeUrl = (url, params) => {
   const keys = Object.keys(params)
   const usp = new URLSearchParams()
 
-  keys.forEach(key => usp.append(key, params[key]))
+  keys.forEach(key =>
+    usp.append(key, Array.isArray(params[key]) ? params[key].join(',') : params[key]))
 
-  return `${url}?${usp.toString()}`
+  return `/api/v1${url}?${usp.toString()}`
 }
 
 const fetchWrap = (url, params) => {
@@ -35,60 +36,86 @@ const fetchWrapWithToken = (url, params, token) => {
   return fetchWrap(url, fetchParams)
 }
 
+const makeApi = ({ url, method, data, token, headers }) => {
+  const params = {
+    method,
+    headers: headers || {},
+    credentials: 'include'
+  }
+
+  const prefixedUrl = makeUrl(url, method === 'GET' && data)
+  const body =
+    (method === 'POST' || method === 'PUT' || method === 'PATCH') && data
+
+  if (body) {
+    params.body = JSON.stringify(body)
+    params.headers['content-type'] = params.headers['content-type'] || 'application/json'
+  }
+
+  if (token) {
+    params.headers['X-BLACKCAT-TOKEN'] = token
+  }
+
+  return fetch(prefixedUrl, params)
+}
+
 const apis = {
   // User auth
   auth: {
-    join: params => fetchWrap('/join', {
+    join: data => makeApi({
+      url: '/join',
       method: 'POST',
-      body: JSON.stringify(params)
+      data
     }),
-    auth: params => fetchWrap('/auth/token', {
+    auth: data => makeApi({
+      url: '/auth/token',
       method: 'POST',
-      body: JSON.stringify(params)
+      data
     }),
-    unauth: (token = defaultToken) => fetchWrapWithToken(
-      '/auth/token',
-      { method: 'DELETE' },
+    unauth: (token = defaultToken) => makeApi({
+      url: '/auth/token',
+      method: 'DELETE',
       token
-    )
+    })
   },
 
   // Channels
   Channels: {
-    getChannels: (token = defaultToken) => fetchWrapWithToken(
-      '/channels',
-      { method: 'GET' },
+    getChannels: (token = defaultToken) => makeApi({
+      url: '/channels',
+      method: 'GET',
       token
-    )
+    })
   },
 
   // Events
   Events: {
-    getEvents: (params, token = defaultToken) => fetchWrapWithToken(
-      '/events',
-      { method: 'GET', body: params },
+    getEvents: (data, token = defaultToken) => makeApi({
+      url: '/events',
+      method: 'GET',
+      data,
       token
-    ),
-    getEvent: (eid, token = defaultToken) => fetchWrapWithToken(
-      `/events/${eid}`,
-      { method: 'GET' },
+    }),
+    getEvent: (eid, token = defaultToken) => makeApi({
+      url: `/events/${eid}`,
+      method: 'GET',
       token
-    ),
-    getParticipants: (eid, token = defaultToken) => fetchWrapWithToken(
-      `/events/${eid}/participants`,
-      { method: 'GET' },
+    }),
+    getParticipants: (eid, token = defaultToken) => makeApi({
+      url: `/events/${eid}/participants`,
+      method: 'GET',
       token
-    ),
-    participateEvent: (eid, token = defaultToken) => fetchWrapWithToken(
-      `/events/${eid}/participants`,
-      { method: 'POST' },
+    }),
+    participateEvent: (eid, token = defaultToken) => makeApi({
+      url: `/events/${eid}/participants`,
+      method: 'POST',
       token
-    ),
-    leaveEvent: (eid, token = defaultToken) => fetchWrapWithToken(
-      `/events/${eid}/participants`,
-      { method: 'DELETE' },
+    }),
+    leaveEvent: (eid, token = defaultToken) => makeApi({
+      url: `/events/${eid}/participants`,
+      method: 'DELETE',
       token
-    ),
+    }),
     getComments: (eid, query, token = defaultToken) => fetchWrapWithToken(
       makeUrl(`/events/${eid}/comments`, query),
       { method: 'GET' },
@@ -141,9 +168,14 @@ const test = async () => {
     email: 'test@shopee.com'
   })
 
-  apis.auth.auth({
+  const auth = await apis.auth.auth({
     username: 'aaaa',
     password: '123456'
+  })
+
+  auth.json().then(async res => {
+    await _pangolier.apis.Events.participateEvent(1, res.token)
+    await _pangolier.apis.Events.leaveEvent(1, res.token)
   })
 }
 
