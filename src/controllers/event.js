@@ -8,6 +8,7 @@ const {
   User,
   Event,
   Like,
+  Comment,
   Participation
 } = _pangolier.getModels()
 
@@ -47,7 +48,7 @@ const getEventsByQuery = async (request, reply) => {
 
   channels = channels && channels.split(',')
   offset = parseInt(offset) || 0
-  limit = parseInt(limit)
+  limit = limit && parseInt(limit)
 
   const query = {}
   let events, hasMore
@@ -56,7 +57,7 @@ const getEventsByQuery = async (request, reply) => {
   if (after) query.begin_time = { [Op.gte]: parseInt(after) }
   if (before) query.end_time = { [Op.lte]: parseInt(before) }
 
-  const { count, rows } = await Eventl.findAndCountAll({
+  const { count, rows } = await Event.findAndCountAll({
     where: query,
     offset,
     limit
@@ -118,9 +119,48 @@ const participateEvent = async (request, reply) => {
   }
 
   await event.addUser(user, { through: Participation })
-  await event.save()
-
   reply.send()
+}
+
+const getEventLiker = async (request, reply) => {
+  let {
+    offset,
+    limit
+  } = request.query
+  const { isAuthed } = request.req.userStatus
+  const eid = request.params.eventId
+
+  if (!isAuthed) {
+    return send403(reply, 'invalid_token')
+  }
+
+  offset = parseInt(offset) || 0
+  limit = limit && parseInt(limit)
+
+  const event = await Event.findOne({ where: { id: eid } })
+  const { count, rows } = await Like.findAndCountAll({
+    where: { eventId: eid },
+    offset,
+    limit
+  })
+
+  if (!event) {
+    return send404(reply, 'event_not_found')
+  }
+
+  const users = await User.findAll({
+    where: { id: rows.map(like => like.dataValues.userId) }
+  })
+
+  reply.send({
+    hasMore: limit !== undefined && count > offset + limit,
+    users: users.map(item => {
+      return {
+        id: item.dataValues.id,
+        username: item.dataValues.username
+      }
+    })
+  })
 }
 
 const leaveEvent = async (request, reply) => {
@@ -137,6 +177,7 @@ const leaveEvent = async (request, reply) => {
     include: [{
       model: User,
       through: {
+        model: Participation,
         where: { userId: uid }
       }
     }]
@@ -157,64 +198,103 @@ const leaveEvent = async (request, reply) => {
 
 const likeEvent = async (request, reply) => {
   const eid = request.params.eventId
-  const cookies = request.req.cookies
-  const uid = cookies && cookies.userId
+  const { isAuthed, uid } = request.req.userStatus
 
-  if (!uid) {
-    return reply
-      .code(403)
-      .send({ error: 'user_not_login' })
+  if (!isAuthed) {
+    return send403(reply, 'invalid_token')
   }
 
-  const count = await Like.count({
+  const like = await Like.findOne({
     where: {
       userId: uid,
       eventId: eid
     }
   })
 
-  if (count) {
-    return reply
-      .code(403)
-      .send({ error: 'already_liked' })
+  const event = await Event.findOne({
+    where: { id: eid }
+  })
+
+  if (!event) {
+    return send404(reply, 'event_not_found')
   }
 
-  const eventLike = {
+  if (like) {
+    return send403(reply, 'already_liked')
+  }
+
+  await Like.create({
     userId: uid,
     eventId: eid,
     like_time: Date.now()
-  }
+  })
 
-  await Like.create(eventLike)
-
-  reply.send(eventLike)
+  reply.send()
 }
 
 const unlikeEvent = async (request, reply) => {
   const eid = request.params.eventId
-  const uid = request.req.cookies.userId
-  const where = {
+  const { isAuthed, uid } = request.req.userStatus
+
+  if (!isAuthed) {
+    return send403(reply, 'invalid_token')
+  }
+
+  const like = await Like.findOne({
+    where: {
+      userId: uid,
+      eventId: eid
+    }
+  })
+
+  const event = await Event.findOne({
+    where: { id: eid }
+  })
+
+  if (!event) {
+    return send404(reply, 'event_not_found')
+  }
+
+  if (!like) {
+    return send404(reply, 'no_like_record_found')
+  }
+
+  await like.destroy()
+  reply.send()
+}
+
+const commentEvent = async (request, reply) => {
+  const eid = request.params.eventId
+  const comment = request.body && request.body.comment
+  const { isAuthed, uid } = request.req.userStatus
+
+  if (!comment) {
+    return send400(reply, 'comment_parameter_missing')
+  }
+
+  if (!isAuthed) {
+    return send403(reply, 'invalid_token')
+  }
+
+  const event = await Event.findOne({
+    where: { id: eid }
+  })
+
+  if (!event) {
+    return send404(reply, 'event_not_found')
+  }
+
+  const cmt = await Comment.create({
     userId: uid,
-    eventId: eid
-  }
+    eventId: eid,
+    create_time: Date.now(),
+    comment
+  })
 
-  if (!uid) {
-    return reply
-      .code(403)
-      .send({ error: 'user_not_login' })
-  }
-
-  const eventLike = await Like.findOne({ where })
-
-  if (eventLike === null) {
-    return reply
-      .code(403)
-      .send({ error: 'could not unlike event not liked yet' })
-  }
-
-  await eventLike.destroy({ where })
-
-  reply.send(eventLike)
+  reply.send({
+    id: cmt.dataValues.id,
+    comment: cmt.dataValues.comment
+  })
 }
 
 module.exports = {
@@ -224,5 +304,7 @@ module.exports = {
   participateEvent,
   leaveEvent,
   likeEvent,
-  unlikeEvent
+  unlikeEvent,
+  getEventLiker,
+  commentEvent
 }

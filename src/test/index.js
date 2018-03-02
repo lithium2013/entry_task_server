@@ -15,27 +15,6 @@ const makeUrl = (url, params) => {
   return `/api/v1${url}?${usp.toString()}`
 }
 
-const fetchWrap = (url, params) => {
-  params.headers = params.headers || {}
-  if (
-    (params.method === 'POST' || params.method) && params.body
-  ) {
-    params.headers['content-type'] = params.headers['content-type'] || 'application/json'
-  }
-
-  return fetch(makeUrl(url), params)
-}
-
-const fetchWrapWithToken = (url, params, token) => {
-  const fetchParams = Object.assign({}, params)
-
-  fetchParams.credentials = 'include'
-  fetchParams.headers = fetchParams.headers || {}
-  Object.assign(fetchParams.headers, { 'X-BLACKCAT-TOKEN': token })
-
-  return fetchWrap(url, fetchParams)
-}
-
 const makeApi = ({ url, method, data, token, headers }) => {
   const params = {
     method,
@@ -116,45 +95,49 @@ const apis = {
       method: 'DELETE',
       token
     }),
-    getComments: (eid, query, token = defaultToken) => fetchWrapWithToken(
-      makeUrl(`/events/${eid}/comments`, query),
-      { method: 'GET' },
+    getComments: (eid, data, token = defaultToken) => makeApi({
+      url: `/events/${eid}/comments`,
+      method: 'GET',
+      data,
       token
-    ),
-    commentEvent: (eid, comment, token = defaultToken) => fetchWrapWithToken(
-      `/events/${eid}/comments`,
-      { method: 'POST', body: { comment } },
+    }),
+    commentEvent: (eid, comment, token = defaultToken) => makeApi({
+      url:`/events/${eid}/comments`,
+      method: 'POST',
+      data: { comment },
       token
-    ),
-    getLikeUsers: (eid, query, token = defaultToken) => fetchWrapWithToken(
-      makeUrl(`/events/${eid}/likes`, query),
-      { method: 'GET' },
+    }),
+    getEventLiker: (eid, data, token = defaultToken) => makeApi({
+      url: `/events/${eid}/likes`,
+      method: 'GET',
+      data,
       token
-    ),
-    likeEvent: (eid, token = defaultToken) => fetchWrapWithToken(
-      `/events/${eid}/likes`,
-      { method: 'POST' },
+    }),
+    likeEvent: (eid, token = defaultToken) => makeApi({
+      url: `/events/${eid}/likes`,
+      method: 'POST',
       token
-    ),
-    unlikeEvent: (eid, token = defaultToken) => fetchWrapWithToken(
-      `/events/${eid}/likes`,
-      { method: 'DELETE' },
+    }),
+    unlikeEvent: (eid, token = defaultToken) => makeApi({
+      url: `/events/${eid}/likes`,
+      method: 'DELETE',
       token
-    )
+    })
   },
 
   // Users
   Users: {
-    getUser: (token = defaultToken) => fetchWrapWithToken(
-      '/user',
-      { method: 'GET' },
+    getUser: (token = defaultToken) => makeApi({
+      url: '/user',
+      method: 'GET',
       token
-    ),
-    getUserEvents: (query, token = defaultToken) => fetchWrapWithToken(
-      makeUrl(`/user/events`, query),
-      { method: 'GET' },
+    }),
+    getUserEvents: (data, token = defaultToken) => makeApi({
+      url: `/user/events`,
+      method: 'GET',
+      data,
       token
-    )
+    })
   }
 }
 
@@ -175,7 +158,18 @@ const test = async () => {
 
   auth.json().then(async res => {
     await _pangolier.apis.Events.participateEvent(1, res.token)
-    await _pangolier.apis.Events.leaveEvent(1, res.token)
+    //await _pangolier.apis.Events.leaveEvent(1, res.token)
+    await _pangolier.apis.Events.likeEvent(1, res.token)
+    await _pangolier.apis.Events.getEventLiker(1, null, res.token)
+    //await _pangolier.apis.Events.unlikeEvent(1, res.token)
+    await _pangolier.apis.Events.commentEvent(1, 'test comment !', res.token)
+
+    await _pangolier.apis.Users.getUser(res.token)
+    await _pangolier.apis.Users.getUser(res.token)
+
+    await _pangolier.apis.Users.getUserEvents({ type: 'liked' }, res.token)
+    await _pangolier.apis.Users.getUserEvents({ type: 'going' }, res.token)
+    await _pangolier.apis.Users.getUserEvents({ type: 'past' }, res.token)
   })
 }
 

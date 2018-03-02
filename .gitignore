@@ -59,7 +59,3 @@ typings/
 
 # db
 db/
-
-#test
-src/test/
-

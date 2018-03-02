@@ -6,10 +6,11 @@ const routes = async fastify => {
   const {
     authController,
     eventController,
-    channelController
+    channelController,
+    userController
   } = controllers
 
-  // User auth
+  // Auth
   fastify.post('/join', authController.register)
   fastify.post('/auth/token', authController.auth)
   fastify.delete('/auth/token', authController.unauth)
@@ -25,8 +26,15 @@ const routes = async fastify => {
   fastify.post('/events/:eventId/participants', eventController.participateEvent)
   fastify.delete('/events/:eventId/participants', eventController.leaveEvent)
 
-  fastify.post('/events/:eventId/like', eventController.likeEvent)
-  fastify.delete('/events/:eventId/like', eventController.unlikeEvent)
+  fastify.get('/events/:eventId/likes', eventController.getEventLiker)
+  fastify.post('/events/:eventId/likes', eventController.likeEvent)
+  fastify.delete('/events/:eventId/likes', eventController.unlikeEvent)
+
+  fastify.post('/events/:eventId/comments', eventController.commentEvent)
+
+  // User
+  fastify.get('/user', userController.getUserInfo)
+  fastify.get('/user/events', userController.getUserEvents)
 }
 
 module.exports = routes

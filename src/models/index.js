@@ -43,13 +43,16 @@ const loadModels = async () => {
   Channel = require('./channel.js')(sequelize)
 
   // setting associations
-  Event.belongsToMany(User, {
-    through: Participation
-  })
-  User.belongsToMany(Event, {
-    through: Participation
-  })
-  Event.hasMany(Image)
+  Event.belongsToMany(User, { through: Participation })
+  User.belongsToMany(Event, { through: Participation })
+
+  Like.hasOne(User, { foreignKey: 'userId' })
+  Like.hasOne(Event, { foreignKey: 'eventId' })
+
+  Comment.hasOne(User, { foreignKey: 'userId' })
+  Comment.hasOne(Event, { foreignKey: 'eventId' })
+
+  Event.hasMany(Image, { foreignKey: 'eventId' })
 
   return Promise.all([
     User.sync({ force: true }),
@@ -80,19 +83,6 @@ const initDBContent = models => {
     update_time: Date.now(),
     location: 'SZ_China',
     description: 'test_event_desc'
-  })
-
-  Comment.create({
-    userId: 1,
-    eventId: 1,
-    create_time: Date.now(),
-    comment: 'test_comment_content'
-  })
-
-  Like.create({
-    userId: 1,
-    eventId: 1,
-    like_time: Date.now()
   })
 
   Image.create({
