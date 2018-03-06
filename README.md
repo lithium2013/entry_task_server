@@ -8,4 +8,7 @@
 
 ## Usage
   - `npm start` to start server.
-  - DB file `db/databasesqlite` will be `created/reset` while first running
+  - DB file `db/database.sqlite` will be `created/reset` while first running
+
+## Test Page (APIs)
+  - Demo APIs have been written in [Test Page](http://localhost:3000/test/index.html)
