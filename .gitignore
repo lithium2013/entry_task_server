@@ -58,4 +58,4 @@ typings/
 .env
 
 # db
-*.sqlite
+db/*.sqlite
